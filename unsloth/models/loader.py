@@ -560,7 +560,12 @@ class FastLanguageModel(FastLlamaModel):
             )
 
         if use_gradient_checkpointing == "unsloth":
-            patch_unsloth_smart_gradient_checkpointing(dtype = dtype)
+            # Gradient offloading overhead is not worth it for small sequences.
+            # For seq < 512, standard gradient checkpointing is faster.
+            if max_seq_length < 512:
+                use_gradient_checkpointing = True
+            else:
+                patch_unsloth_smart_gradient_checkpointing(dtype = dtype)
 
         # Check if this is local model since the tokenizer gets overwritten
         if (
@@ -1190,7 +1195,12 @@ class FastModel(FastBaseModel):
                 break
         # Patch gradient checkpointing
         if use_gradient_checkpointing == "unsloth":
-            patch_unsloth_smart_gradient_checkpointing(dtype = dtype)
+            # Gradient offloading overhead is not worth it for small sequences.
+            # For seq < 512, standard gradient checkpointing is faster.
+            if max_seq_length < 512:
+                use_gradient_checkpointing = True
+            else:
+                patch_unsloth_smart_gradient_checkpointing(dtype = dtype)
         with redirector:
             patch_loss_functions(torch_compile = False)
             model_types, supports_sdpa = unsloth_compile_transformers(

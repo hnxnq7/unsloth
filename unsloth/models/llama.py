@@ -2641,9 +2641,15 @@ class FastLlamaModel:
         transformers_set_seed(random_state)
 
         if use_gradient_checkpointing == "unsloth":
-            patch_unsloth_smart_gradient_checkpointing(
-                dtype = model.get_input_embeddings().weight.dtype
-            )
+            # Gradient offloading overhead is not worth it for small sequences.
+            # Benchmarks show crossover point is around seq_len 384-512.
+            # For seq < 512, standard gradient checkpointing is faster.
+            if hasattr(model, "max_seq_length") and model.max_seq_length < 512:
+                use_gradient_checkpointing = True
+            else:
+                patch_unsloth_smart_gradient_checkpointing(
+                    dtype = model.get_input_embeddings().weight.dtype
+                )
 
         if type(r) is not int:
             raise TypeError(f"Unsloth: Rank of {str(r)} must be an integer.")
