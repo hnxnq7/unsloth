@@ -107,7 +107,7 @@ PRE_COMPILE_INFERENCE = [
     "gpt_oss",
 ]
 
-from transformers import GenerationConfig, CompileConfig, HybridCache, AutoConfig
+from transformers import GenerationConfig, CompileConfig, AutoConfig
 
 try:
     from transformers import PreTrainedConfig
@@ -117,8 +117,6 @@ except:
     from transformers import PretrainedConfig
 
 HAS_TORCH_DTYPE = "torch_dtype" in PretrainedConfig.__doc__
-
-from transformers import GenerationConfig, CompileConfig, HybridCache
 
 _compile_config = CompileConfig(
     fullgraph = False,
